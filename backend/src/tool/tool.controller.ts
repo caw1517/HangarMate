@@ -1,15 +1,16 @@
-import {Controller, Get, UseGuards} from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { ToolService } from './tool.service';
-import {AuthService} from "../auth/auth.service";
-import {JwtAuthGuard} from "../auth/gaurds/JwtAuthGuard";
+import { JwtAuthGuard } from '../auth/gaurds/JwtAuthGuard';
+import { Request } from 'express';
 
 @Controller('tools')
 export class ToolController {
-  constructor(private readonly toolService: ToolService, private authService: AuthService) {}
+  constructor(private readonly toolService: ToolService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getAllTools() {
+  GetAllTools(@Req() req: Request) {
+    console.log(req.user);
     return this.toolService.getTools();
   }
 }

@@ -1,4 +1,4 @@
 export interface Tool {
-    toolName: string;
-    toolSerial: string;
+  toolName: string;
+  toolSerial: string;
 }

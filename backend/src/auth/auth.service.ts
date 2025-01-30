@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
@@ -36,7 +40,7 @@ export class AuthService {
       });
 
       //Change this to a redirect later
-      return this.SignToken(user.id, user.email);
+      return this.SignJwtToken(user.id, user.email);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002')
@@ -47,7 +51,7 @@ export class AuthService {
   }
 
   async Login(email: string, password: string) {
-    const user = await this.userService.findUser(email);
+    const user = await this.userService.findUserByEmail(email);
 
     if (user) {
       const pwMatches: boolean = await argon.verify(
@@ -55,26 +59,69 @@ export class AuthService {
         password,
       );
 
-      if (pwMatches) return this.SignToken(user.id, user.email);
+      if (pwMatches) {
+        const accessToken = await this.SignJwtToken(user.id, user.email);
+        const refreshToken = await this.SignRefreshToken(user.id, user.email);
+
+        await this.SaveRefreshToken(user.id, refreshToken);
+
+        return { accessToken, refreshToken };
+      }
     }
   }
 
-  async SignToken(
-    userId: string,
-    email: string,
-  ): Promise<{ accessToken: string }> {
+  async Logout(email: string) {
+    return this.userService.logOut(email);
+  }
+
+  async SignJwtToken(userId: string, email: string): Promise<string> {
     const payload = {
       sub: userId,
       email,
     };
 
-    const secret = this.config.get<string>('JWT_SECRET');
-
-    const token = await this.jwt.signAsync(payload, {
+    return await this.jwt.signAsync(payload, {
       expiresIn: '15m',
-      secret,
+      secret: this.config.get<string>('JWT_SECRET'),
     });
+  }
 
-    return { accessToken: token };
+  async SignRefreshToken(userId: string, email: string): Promise<string> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+
+    return await this.jwt.signAsync(payload, {
+      expiresIn: '7d',
+      secret: this.config.get<string>('REFRESH_SECRET'),
+    });
+  }
+
+  async RefreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findUserById(userId);
+
+    if (!user || !user.refreshToken)
+      throw new UnauthorizedException('Not authorized');
+
+    const tokenVerified = await argon.verify(user.refreshToken, refreshToken);
+
+    if (!tokenVerified) throw new UnauthorizedException('Not authorized');
+
+    const accessToken = await this.SignJwtToken(user.id, user.email);
+    const newRefreshToken = await this.SignRefreshToken(user.id, user.email);
+
+    await this.SaveRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+
+  async SaveRefreshToken(userId: string, refreshToken: string): Promise<void> {
+    const hashedToken = await argon.hash(refreshToken);
+
+    await this.userService.updateRefreshToken(userId, hashedToken);
   }
 }

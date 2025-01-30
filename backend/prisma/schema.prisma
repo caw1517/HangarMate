@@ -18,6 +18,7 @@ model User {
   licenseType    LicenseType @default(NONE)
   licenseNumber  String?
   role           Role        @default(GUEST)
+  refreshToken   String?
 }
 
 model CalTool {
