@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  dev-db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: hangarMateAdmin
+      POSTGRES_PASSWORD: a1se47mg!
+      POSTGRES_DB: hangarMate
+    volumes:
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
