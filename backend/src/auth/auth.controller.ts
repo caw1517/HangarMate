@@ -1,8 +1,10 @@
 import {
   Body,
-  Controller, Get,
+  Controller,
+  Get,
   Post,
-  Req, UnauthorizedException,
+  Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';

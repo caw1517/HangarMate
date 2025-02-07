@@ -1,7 +1,6 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ToolService } from './tool.service';
 import { JwtAuthGuard } from '../auth/gaurds/JwtAuthGuard';
-import { Request } from 'express';
 
 @Controller('tools')
 export class ToolController {
@@ -9,8 +8,7 @@ export class ToolController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  GetAllTools(@Req() req: Request) {
-    console.log(req.user);
+  GetAllTools() {
     return this.toolService.getTools();
   }
 }

@@ -17,13 +17,3 @@ export class AuthDto {
   @IsNotEmpty()
   lastName: string;
 }
-
-export class LoginDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-}
