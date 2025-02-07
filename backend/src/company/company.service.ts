@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompanyDto } from './dto';
 import { UsersService } from '../users/users.service';
@@ -36,6 +36,31 @@ export class CompanyService {
       } catch (error) {
         throw new Error((error as Error).message);
       }
+    }
+  }
+
+  async AddUserToCompany(
+    userEmail: string,
+    companyId: string,
+    currentUserId: string,
+  ) {
+    const companyVerify =
+      await this.userService.GetUserCompanies(currentUserId);
+
+    const requestingUser = await this.userService.findUserById(currentUserId);
+    if (!requestingUser)
+      throw new HttpException(
+        'User requesting not found',
+        HttpStatus.NOT_FOUND,
+      );
+
+    //If user adding new user isn't a part of the company, disregard request
+    if (companyVerify && companyVerify.id != companyId) {
+      //if(requestingUser.role != 'ADMIN') //throw new HttpException()
+      throw new HttpException(
+        'User does not have permission to add',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 }

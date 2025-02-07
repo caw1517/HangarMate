@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -53,5 +54,21 @@ export class CompanyController {
 
   //Delete a company
 
-  //Add a user to company
+  //Add a user to company (userEmail, companyId)
+  @UseGuards(JwtAuthGuard)
+  @Put('add-user')
+  async AddUserToCompany(
+    companyId: string,
+    userToAddEmail: string,
+    @Req() req: AuthRequest,
+  ) {
+    if (!req.user)
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+
+    return await this.companyService.AddUserToCompany(
+      userToAddEmail,
+      companyId,
+      req.user.sub,
+    );
+  }
 }
