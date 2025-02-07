@@ -12,21 +12,30 @@ export class CompanyService {
 
   async CreateCompany(dto: CompanyDto, userId: string) {
     console.log(dto.companyName, userId);
+
     //Get the user from the request
     const user = await this.userService.findUserById(userId);
 
+    const isPartCompany = await this.userService.GetUserCompanies(userId);
+    if (isPartCompany != null) {
+      throw new Error('User is already in a company.');
+    }
+
     if (user) {
-      const newCompany = await this.prismaService.company.create({
-        data: {
-          companyName: dto.companyName,
-          users: {
-            connect: {
-              id: userId,
+      try {
+        return this.prismaService.company.create({
+          data: {
+            companyName: dto.companyName,
+            users: {
+              connect: {
+                id: userId,
+              },
             },
           },
-        },
-      });
-      return newCompany;
+        });
+      } catch (error) {
+        throw new Error((error as Error).message);
+      }
     }
   }
 }

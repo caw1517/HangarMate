@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/gaurds/JwtAuthGuard';
 import { CompanyService } from './company.service';
 import { CompanyDto } from './dto';
@@ -14,17 +23,30 @@ export class CompanyController {
     return 'Returns all Companies';
   }
 
-  //Get the company a user is in
-
   //Create a new company
   @UseGuards(JwtAuthGuard)
   @Post()
   async CreateNewCompany(@Body() dto: CompanyDto, @Req() req: AuthRequest) {
-    if (req.user) {
-      await this.companyService.CreateCompany(dto, req.user.sub);
-    }
+    if (!req.user)
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
 
-    return 'Successfully Created Company but change this';
+    try {
+      const company = await this.companyService.CreateCompany(
+        dto,
+        req.user.sub,
+      );
+
+      return {
+        status: HttpStatus.CREATED,
+        message: `Company created successfully.`,
+        data: company,
+      };
+    } catch (error) {
+      throw new HttpException(
+        (error as Error).message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   //Update a company
