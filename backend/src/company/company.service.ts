@@ -63,6 +63,22 @@ export class CompanyService {
       );
     }
 
+    //Ensure user being added isn't already a part of another company
+    const userToAdd = await this.userService.findUserByEmail(userToAddEmail);
+
+    if (!userToAdd)
+      throw new HttpException('User does not exist', HttpStatus.BAD_REQUEST);
+
+    const newUsersCompanies = await this.userService.GetUserCompanies(
+      userToAdd.id,
+    );
+
+    if (newUsersCompanies)
+      throw new HttpException(
+        'User already apart of another company',
+        HttpStatus.BAD_REQUEST,
+      );
+
     return this.prismaService.company.update({
       where: {
         id: companyId,
