@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/gaurds/JwtAuthGuard';
 import { CompanyService } from './company.service';
-import { CompanyDto } from './dto';
+import { addUserDto, CompanyDto } from './dto';
 import { AuthRequest } from '../auth/interfaces/user.interface';
 
 @Controller('companies')
@@ -56,18 +56,14 @@ export class CompanyController {
 
   //Add a user to company (userEmail, companyId)
   @UseGuards(JwtAuthGuard)
-  @Put('add-user')
-  async AddUserToCompany(
-    companyId: string,
-    userToAddEmail: string,
-    @Req() req: AuthRequest,
-  ) {
+  @Put('adduser')
+  async AddUserToCompany(@Body() dto: addUserDto, @Req() req: AuthRequest) {
     if (!req.user)
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
 
     return await this.companyService.AddUserToCompany(
-      userToAddEmail,
-      companyId,
+      dto.userToAddEmail,
+      dto.companyId,
       req.user.sub,
     );
   }

@@ -53,7 +53,6 @@ export class UsersService {
       },
     });
 
-    console.log(user);
     if (!user || user.company == null) {
       return null;
     }

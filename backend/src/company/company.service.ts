@@ -11,8 +11,6 @@ export class CompanyService {
   ) {}
 
   async CreateCompany(dto: CompanyDto, userId: string) {
-    console.log(dto.companyName, userId);
-
     //Get the user from the request
     const user = await this.userService.findUserById(userId);
 
@@ -40,7 +38,7 @@ export class CompanyService {
   }
 
   async AddUserToCompany(
-    userEmail: string,
+    userToAddEmail: string,
     companyId: string,
     currentUserId: string,
   ) {
@@ -55,12 +53,27 @@ export class CompanyService {
       );
 
     //If user adding new user isn't a part of the company, disregard request
-    if (companyVerify && companyVerify.id != companyId) {
-      //if(requestingUser.role != 'ADMIN') //throw new HttpException()
+    if (!companyVerify || companyVerify.id != companyId) {
+      if (requestingUser.role != 'ADMIN')
+        throw new HttpException('Invalid privlidges', HttpStatus.BAD_REQUEST);
+
       throw new HttpException(
         'User does not have permission to add',
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    return this.prismaService.company.update({
+      where: {
+        id: companyId,
+      },
+      data: {
+        users: {
+          connect: {
+            email: userToAddEmail,
+          },
+        },
+      },
+    });
   }
 }
