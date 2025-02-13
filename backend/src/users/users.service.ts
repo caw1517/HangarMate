@@ -42,4 +42,21 @@ export class UsersService {
       },
     });
   }
+
+  async GetUserCompanies(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        company: true,
+      },
+    });
+
+    if (!user || user.company == null) {
+      return null;
+    }
+
+    return user.company;
+  }
 }
