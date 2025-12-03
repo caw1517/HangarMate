@@ -1,24 +1,49 @@
-﻿using Api.Models;
+﻿using Api.Context;
+using Api.Models;
+using Api.Models.Dtos;
+using Microsoft.EntityFrameworkCore;
+
 namespace Api.Services;
 
 public class LogItemService
 {
-    private static List<LogItem> LogItems { get; }
+    private readonly DatabaseContext _context;
 
-    static LogItemService()
+    public LogItemService(DatabaseContext context)
     {
-        LogItems = new List<LogItem>
-        {
-            new LogItem { Id = Guid.NewGuid(), Discrepancy = "RH Fuel Pump Inop", CreatedOn = DateTime.Now, SignedOff = false, SignedOffOn = null},
-            new LogItem { Id = Guid.NewGuid(), Discrepancy = "HF Static", CreatedOn = DateTime.Now, SignedOff = false, SignedOffOn = null}
-        };
+        _context = context;
     }
 
-    public static List<LogItem> GetAll() => LogItems;
+    public async Task<List<LogItem>> GetAllLogItems()
+    {
+        return await _context.LogItems.ToListAsync();
+    }
 
-    public static LogItem? Get(Guid id) => LogItems.FirstOrDefault(i => i.Id == id);
+    public async Task<LogItem?> GetLogItemById(Guid id)
+    {
+        return await _context.LogItems.FindAsync(id);
+    }
 
-    public static void AddLogItem(LogItem newItem)
+    public async Task<LogItem> CreateLogItem(CreateLogItemDto dto)
+    {
+        var newLogItem = new LogItem
+        {
+            Id = Guid.NewGuid(),
+            Discrepancy = dto.Discrepancy,
+            SignedOff = false,
+            CreatedOn = DateTime.UtcNow,
+            SignedOffOn = null
+        };
+        
+        var logItem = _context.LogItems.Add(newLogItem).Entity;
+        await _context.SaveChangesAsync();
+        
+        return logItem;
+    }
+
+/*public static LogItem? Get(Guid id) => LogItems.FirstOrDefault(i => i.Id == id);*/
+
+    /*public static void AddLogItem(LogItem newItem)
     {
         newItem.Id = Guid.NewGuid();
         LogItems.Add(newItem);
@@ -40,5 +65,5 @@ public class LogItemService
         {
             LogItems[index] = logItem;
         }
-    }
+    }*/
 }
