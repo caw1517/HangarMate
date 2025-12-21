@@ -2,10 +2,12 @@ using Api.Context;
 using Api.Models;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+var supabaseUrl = builder.Configuration["Authentication:Supabase:Url"];
+var supabaseProjectId = builder.Configuration["Authentication:Supabase:ProjectId"];
 
 // Add services to the container.
 builder.Services.AddDbContext<DatabaseContext>();
@@ -16,13 +18,20 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(jwtOptions =>
-{
-    
-    //FIXME: add these values
-    jwtOptions.Authority = builder.Configuration["AzureAd:Authority"];
-    jwtOptions.Audience = builder.Configuration["AzureAd:ClientId"];
-});
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"{supabaseUrl}/auth/v1";
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"{supabaseUrl}/auth/v1",
+            ValidateAudience = true,
+            ValidAudience = "authenticated",
+            ValidateLifetime = true
+        };
+    });
 
 var app = builder.Build();
 
@@ -33,6 +42,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
