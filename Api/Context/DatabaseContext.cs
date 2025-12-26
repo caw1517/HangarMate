@@ -5,21 +5,11 @@ namespace Api.Context;
 
 public class DatabaseContext : DbContext
 {
+    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
+    
     public DbSet<LogItem> LogItems { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Company> Companies { get; set; }
-
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(
-            @"
-        Host=db.eivuljqjdgtcwbudexmm.supabase.co;
-        Port=5432;
-        Database=postgres;
-        Username=postgres;
-        Password=tt9t2a06YOWST4NS;
-        SslMode=Require;
-        Trust Server Certificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

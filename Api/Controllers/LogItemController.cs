@@ -1,13 +1,16 @@
-﻿using Api.Context;
+﻿using System.Security.Claims;
+using Api.Context;
 using Api.Models;
 using Api.Models.Dtos;
 using Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class LogItemController : ControllerBase
 {
 
@@ -16,8 +19,9 @@ public class LogItemController : ControllerBase
     {
         _logItemService = logItemService;
     }
-
-  [HttpGet]
+    
+    [HttpGet]
+    [Authorize]
     public async Task<ActionResult<List<LogItem>>> GetAll()
     {
         return await _logItemService.GetAllLogItems();

@@ -2,15 +2,17 @@ using Api.Context;
 using Api.Models;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var supabaseUrl = builder.Configuration["Authentication:Supabase:Url"];
 var supabaseProjectId = builder.Configuration["Authentication:Supabase:ProjectId"];
 
 // Add services to the container.
-builder.Services.AddDbContext<DatabaseContext>();
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<LogItemService>();
 builder.Services.AddScoped<UsersService>();
 
