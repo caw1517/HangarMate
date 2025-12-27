@@ -15,13 +15,15 @@ public class LogItemController : ControllerBase
 {
 
     private readonly LogItemService _logItemService;
-    public LogItemController(LogItemService logItemService)
+    private readonly IPermissionService _permissionService;
+    public LogItemController(LogItemService logItemService, IPermissionService permissionService)
     {
         _logItemService = logItemService;
+        _permissionService = permissionService;
     }
     
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = "SiteAdmin")]   
     public async Task<ActionResult<List<LogItem>>> GetAll()
     {
         return await _logItemService.GetAllLogItems();

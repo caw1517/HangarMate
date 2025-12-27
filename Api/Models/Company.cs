@@ -10,5 +10,5 @@ public class Company
     public string CompanyName { get; set; } = string.Empty;
 
     // Navigation property - collection of users
-    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<UserProfile> Users { get; set; } = new List<UserProfile>();
 }

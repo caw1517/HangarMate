@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Api.Context;
 using Api.Models;
 using Api.Services;
@@ -11,13 +12,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 var supabaseUrl = builder.Configuration["Authentication:Supabase:Url"];
 var supabaseProjectId = builder.Configuration["Authentication:Supabase:ProjectId"];
 
+builder.Services.AddHttpContextAccessor();
+
 // Add services to the container.
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<LogItemService>();
 builder.Services.AddScoped<UsersService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -33,7 +36,48 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = "authenticated",
             ValidateLifetime = true
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<DatabaseContext>();
+
+                var authId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(authId, out var userId))
+                {
+                    var profile = await dbContext.UserProfiles
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.Id == userId);
+
+                    if (profile != null)
+                    {
+                        var claims = new List<Claim>
+                        {
+                            new Claim("CompanyId", profile.CompanyId.ToString() ?? ""),
+                            new Claim("CompanyRole", profile.CompanyRole.ToString() ?? "None"),
+                            new Claim("SiteRole", profile.SiteRole.ToString()),
+                            new Claim("LicenseType", profile.LicenseType.ToString())
+                        };
+
+                        var appIdentity = new ClaimsIdentity(claims);
+                        context.Principal?.AddIdentity(appIdentity);
+                    }
+                }
+            }
+        };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SiteAdmin", policy => policy.RequireClaim("SiteRole", SiteRole.Admin.ToString()));
+    options.AddPolicy("CompanyAdmin", policy => policy.RequireClaim("CompanyRole", CompanyRole.Admin.ToString()));
+    options.AddPolicy("CanManageUsers", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim("SiteRole", SiteRole.Admin.ToString()) ||
+            context.User.HasClaim("CompanyRole", CompanyRole.Admin.ToString())
+        ));
+});
 
 var app = builder.Build();
 

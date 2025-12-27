@@ -2,7 +2,7 @@
 
 namespace Api.Models;
 
-public class User
+public class UserProfile
 {
     [Key]
     public Guid Id { get; set; }
