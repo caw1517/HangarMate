@@ -10,6 +10,7 @@ public class DatabaseContext : DbContext
     public DbSet<LogItem> LogItems { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Team> Teams { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,7 +21,15 @@ public class DatabaseContext : DbContext
             
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
-        
+
+        modelBuilder.Entity<Vehicle>(entity =>
+        {
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
+            
+            entity.Property(e => e.CreatedOn).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
     }
     
 

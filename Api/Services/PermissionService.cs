@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Api.Context;
 using Api.Models;
+using Api.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services;

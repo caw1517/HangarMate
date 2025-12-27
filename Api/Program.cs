@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Api.Context;
 using Api.Models;
+using Api.Models.Enums;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
