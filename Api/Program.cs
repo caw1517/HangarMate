@@ -54,8 +54,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     {
                         var claims = new List<Claim>
                         {
-                            new Claim("CompanyId", profile.CompanyId.ToString() ?? ""),
-                            new Claim("CompanyRole", profile.CompanyRole.ToString() ?? "None"),
+                            new Claim("CompanyId", profile.TeamId.ToString() ?? ""),
+                            new Claim("TeamRole", profile.TeamRole.ToString() ?? "None"),
                             new Claim("SiteRole", profile.SiteRole.ToString()),
                             new Claim("LicenseType", profile.LicenseType.ToString())
                         };
@@ -71,11 +71,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("SiteAdmin", policy => policy.RequireClaim("SiteRole", SiteRole.Admin.ToString()));
-    options.AddPolicy("CompanyAdmin", policy => policy.RequireClaim("CompanyRole", CompanyRole.Admin.ToString()));
+    options.AddPolicy("TeamAdmin", policy => policy.RequireClaim("TeamRole", TeamRole.Admin.ToString()));
     options.AddPolicy("CanManageUsers", policy =>
         policy.RequireAssertion(context =>
             context.User.HasClaim("SiteRole", SiteRole.Admin.ToString()) ||
-            context.User.HasClaim("CompanyRole", CompanyRole.Admin.ToString())
+            context.User.HasClaim("TeamRole", TeamRole.Admin.ToString())
         ));
 });
 

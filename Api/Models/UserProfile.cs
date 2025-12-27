@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api.Models;
 
@@ -17,16 +18,14 @@ public class UserProfile
     
     public DateTime UpdatedAt { get; set; }
     
-    public CompanyRole? CompanyRole { get; set; }
+    public TeamRole? TeamRole { get; set; }
     
     public SiteRole SiteRole { get; set; }
     
     public LicenseType LicenseType { get; set; }
 
-    // Foreign key
-    public int CompanyId { get; set; }
-
-    // Navigation property
-    public Company Company { get; set; } = null!;
+    [ForeignKey(nameof(Team))]
+    public int? TeamId { get; set; }
+    public Team? Team { get; set; } = null!;
 }
 

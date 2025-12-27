@@ -9,7 +9,7 @@ public class DatabaseContext : DbContext
     
     public DbSet<LogItem> LogItems { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
-    public DbSet<Company> Companies { get; set; }
+    public DbSet<Team> Teams { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

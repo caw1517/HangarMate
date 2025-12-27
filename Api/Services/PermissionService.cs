@@ -11,7 +11,7 @@ public interface IPermissionService
     int? CompanyId { get; }
     bool IsInCompany { get; }
     
-    CompanyRole CompanyRole { get; }
+    TeamRole TeamRole { get; }
     SiteRole SiteRole { get; }
     LicenseType LicenseType { get; } 
     
@@ -43,6 +43,6 @@ public class PermissionService : IPermissionService
     public bool IsInCompany => CompanyId.HasValue;
     
     public SiteRole SiteRole => Enum.Parse<SiteRole>(_httpContextAccessor.HttpContext?.User.FindFirst("SiteRole")?.Value ?? "Standard");
-    public CompanyRole CompanyRole => Enum.Parse<CompanyRole>(_httpContextAccessor.HttpContext?.User.FindFirst("CompanyRole")?.Value ?? "Standard");
+    public TeamRole TeamRole => Enum.Parse<TeamRole>(_httpContextAccessor.HttpContext?.User.FindFirst("CompanyRole")?.Value ?? "Standard");
     public LicenseType LicenseType => Enum.Parse<LicenseType>(_httpContextAccessor.HttpContext?.User.FindFirst("LicenseType")?.Value ?? "None");
 }
