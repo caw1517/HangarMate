@@ -19,8 +19,6 @@ public class UserProfile
     
     public DateTime UpdatedAt { get; set; }
     
-    public TeamRole? TeamRole { get; set; }
-    
     public SiteRole SiteRole { get; set; }
     
     public LicenseType LicenseType { get; set; }
@@ -28,5 +26,7 @@ public class UserProfile
     [ForeignKey(nameof(Team))]
     public int? TeamId { get; set; }
     public Team? Team { get; set; } = null!;
+        
+    public TeamRole? TeamRole { get; set; }
 }
 
