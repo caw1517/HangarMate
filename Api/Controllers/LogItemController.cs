@@ -8,10 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[ApiController]
 [Route("[controller]")]
 [Authorize]
-public class LogItemController : ControllerBase
+public class LogItemController : BaseApiController
 {
 
     private readonly LogItemService _logItemService;
@@ -34,8 +33,8 @@ public class LogItemController : ControllerBase
     {
         var logItem = await _logItemService.GetLogItemById(id);
         if (logItem == null)
-            return NotFound();
-        
+            return NotFoundWithMessage("Log item not found");
+
         return logItem;
     }
 

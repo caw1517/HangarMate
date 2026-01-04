@@ -1,9 +1,12 @@
 using System.Security.Claims;
+using Api.Authorization;
 using Api.Context;
 using Api.Models;
 using Api.Models.Enums;
 using Api.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,12 +17,16 @@ var supabaseUrl = builder.Configuration["Authentication:Supabase:Url"];
 var supabaseProjectId = builder.Configuration["Authentication:Supabase:ProjectId"];
 
 builder.Services.AddHttpContextAccessor();
-
-// Add services to the container.
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
+
+/*SERVICES*/
 builder.Services.AddScoped<LogItemService>();
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+
+/*POLICIES*/
+builder.Services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CanManageVehicleHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -78,6 +85,12 @@ builder.Services.AddAuthorization(options =>
             context.User.HasClaim("SiteRole", SiteRole.Admin.ToString()) ||
             context.User.HasClaim("TeamRole", TeamRole.Admin.ToString())
         ));
+    
+    //User Resource based policies
+    options.AddPolicy("SelfOrAdmin", policy => policy.Requirements.Add(new SelfOrAdminRequirement()));
+    
+    //Vehicle Resource based polices
+    options.AddPolicy("CanManageVehicle", policy => policy.Requirements.Add(new CanManageVehicleRequirement()));
 });
 
 var app = builder.Build();

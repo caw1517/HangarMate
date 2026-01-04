@@ -8,17 +8,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers.Users
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseApiController
     {
         
         private readonly UsersService _usersService;
         private readonly IPermissionService _permissionService;
+        private readonly IAuthorizationService _authorizationService;
         
-        public UserController(UsersService usersService, IPermissionService permissionService)
+        public UserController(UsersService usersService, IPermissionService permissionService, IAuthorizationService authorizationService)
         {
             _usersService = usersService;
             _permissionService = permissionService;
+            _authorizationService = authorizationService;
         }
 
         /*GET USER BY ID*/
@@ -30,7 +31,7 @@ namespace Api.Controllers.Users
             var userProfile = await _usersService.GetUserProfileById(userId);
 
             if(userProfile == null)
-                return NotFound("User not found");
+                return NotFoundWithMessage("User not found");
 
             return new BasicUserProfileReturnDto
             {
@@ -69,7 +70,7 @@ namespace Api.Controllers.Users
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return BadRequest("An error occured while registering a new user");
+                return InternalServerErrorWithMessage("An error occurred while registering a new user");
             }
         }
         
@@ -84,25 +85,16 @@ namespace Api.Controllers.Users
             [FromBody] UpdateUserProfileDto updatedUserProfileDto, 
             [FromQuery] Guid? userId)
         {
-            UserProfile updatedProfile;
-
             try
             {
+                var targetUserId = userId ?? _permissionService.UserId;
                 
-                //We are admin
-                if (userId != null)
-                {
-                    //If userId was sent, it must be an admin doing it. Otherwise, we will just use the userId from the request.
-                    if (_permissionService.SiteRole != SiteRole.Admin)
-                    {
-                        return Forbid();
-                    }
-                    updatedProfile = await _usersService.UpdateUserProfile(updatedUserProfileDto, userId.Value);
-                }
-                else
-                {
-                    updatedProfile =  await _usersService.UpdateUserProfile(updatedUserProfileDto, _permissionService.UserId);
-                }
+                var authResult = await _authorizationService.AuthorizeAsync(User, targetUserId, "SelfOrAdmin");
+
+                if(!authResult.Succeeded)
+                    return ForbiddenWithMessage("You do not have permission to update this user's profile.");
+                
+                var updatedProfile = await _usersService.UpdateUserProfile(updatedUserProfileDto, targetUserId);
 
                 var returnProfile = new BasicUserProfileReturnDto
                 {
