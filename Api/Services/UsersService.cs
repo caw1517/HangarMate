@@ -1,4 +1,5 @@
-﻿using Api.Context;
+﻿using System.ComponentModel.DataAnnotations;
+using Api.Context;
 using Api.Models;
 using Api.Models.Dtos.Users;
 
@@ -18,11 +19,14 @@ public class UsersService
         return await _context.UserProfiles.FindAsync(id);
     }
 
-    public async Task<UserProfile> CreateNewUserProfile(CreateUserProfileDto newUser)
+    public async Task<UserProfile> CreateNewUserProfile(CreateUserProfileDto newUser, Guid userId)
     {
+        if(_context.UserProfiles.Any(x => x.Id == userId))
+            throw new ArgumentException("There is already a profile for this user.");
+        
         var newUserProfile = new UserProfile
         {
-            Id = newUser.Id,
+            Id = userId,
             FirstName = newUser.FirstName,
             LastName = newUser.LastName,
             CreatedAt = DateTime.UtcNow,
@@ -35,6 +39,29 @@ public class UsersService
         await _context.SaveChangesAsync();
 
         return newUserProfile;
+    }
+
+    public async Task<UserProfile> UpdateUserProfile(UpdateUserProfileDto updateUser, Guid userId)
+    {
+        var userProfile = await _context.UserProfiles.FindAsync(userId);
+        
+        if(userProfile == null)
+            throw new ArgumentException("There is no profile for this user.");
+        
+        if (updateUser.FirstName != null)
+            userProfile.FirstName = updateUser.FirstName;
+        
+        if(updateUser.LastName != null)
+            userProfile.LastName = updateUser.LastName;
+        
+        if (updateUser.LicenseType != null)
+            userProfile.LicenseType = (LicenseType)updateUser.LicenseType;
+        
+        userProfile.UpdatedAt = DateTime.UtcNow;
+        
+        await _context.SaveChangesAsync();
+        
+        return userProfile;
     }
 
 }

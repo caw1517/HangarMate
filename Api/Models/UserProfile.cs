@@ -29,4 +29,3 @@ public class UserProfile
         
     public TeamRole? TeamRole { get; set; }
 }
-

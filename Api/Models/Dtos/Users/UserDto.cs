@@ -6,9 +6,6 @@ namespace Api.Models.Dtos.Users;
 public class CreateUserProfileDto
 {
     [Required]
-    public Guid Id { get; set; }
-    
-    [Required]
     [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
     
@@ -31,4 +28,15 @@ public class BasicUserProfileReturnDto
     public LicenseType LicenseType { get; set; }
     
     public BasicTeamReturnDto? Team { get; set; }
+}
+
+public class UpdateUserProfileDto
+{
+    [MaxLength(100)]
+    public string? FirstName { get; set; }
+    
+    [MaxLength(70)]
+    public string? LastName { get; set; }
+    
+    public LicenseType? LicenseType { get; set; }
 }
